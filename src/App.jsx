@@ -1,5 +1,5 @@
 import React, { useState, useMemo, createContext, useContext, useEffect, useRef } from 'react';
-import { Mail, ShieldCheck, ShieldAlert, Inbox, Send, FileText, Trash2, Pencil, Star, Search, Menu, UserCircle, CheckCircle, XCircle, Award, Download, Link2 } from 'lucide-react';
+import { Mail, ShieldCheck, ShieldAlert, Inbox, Send, FileText, Trash2, Pencil, Star, Search, Menu, UserCircle, CheckCircle, XCircle, Award, Download } from 'lucide-react';
 
 // --- Baza danych maili ---
 const initialEmailsData = [
@@ -418,15 +418,22 @@ export default function App() {
   const [selectedEmailId, setSelectedEmailId] = useState(null);
   const [score, setScore] = useState({ correct: 0, incorrect: 0, answered: 0 });
   const [hoveredLink, setHoveredLink] = useState(null);
-  const [linkModal, setLinkModal] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
     script.async = true;
     document.body.appendChild(script);
+
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
     return () => {
       document.body.removeChild(script);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
@@ -468,18 +475,20 @@ export default function App() {
   if (!user) return <LoginScreen onStart={startQuiz} />;
   if (score.answered === totalEmails) return <ResultsScreen score={score} total={totalEmails} onReset={resetQuiz} user={user} />;
 
-  const contextValue = { user, emails, selectEmail, selectedEmail, handleAnswer, score, totalEmails, setHoveredLink, forceWin, setLinkModal };
+  const contextValue = { user, emails, selectEmail, selectedEmail, handleAnswer, score, totalEmails, setHoveredLink, forceWin };
 
   return (
     <AppContext.Provider value={contextValue}>
       <div className="relative h-screen w-screen">
         <GmailLayout />
         {hoveredLink && (
-          <div className="absolute bottom-0 left-0 bg-gray-800 text-white text-sm px-4 py-2 shadow-lg z-50">
+          <div 
+            style={{ top: mousePosition.y + 20, left: mousePosition.x + 20 }}
+            className="absolute bg-gray-800 text-white text-sm px-3 py-1 rounded-md shadow-lg z-50 pointer-events-none"
+          >
             {hoveredLink}
           </div>
         )}
-        {linkModal && <LinkModal url={linkModal} onClose={() => setLinkModal(null)} />}
       </div>
     </AppContext.Provider>
   );
@@ -536,28 +545,6 @@ function SenderTooltip({ email, user }) {
       </div>
     </div>
   );
-}
-
-// --- Komponent Modala Linku ---
-function LinkModal({ url, onClose }) {
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-xl w-full">
-                <div className="flex items-center mb-4">
-                    <Link2 className="h-6 w-6 mr-3 text-blue-600" />
-                    <h2 className="text-xl font-bold text-gray-800">Prawdziwy cel linku</h2>
-                </div>
-                <p className="text-gray-600 mb-4">Ten link próbuje przekierować Cię na następujący adres:</p>
-                <p className="bg-gray-100 p-3 rounded-md text-gray-800 break-all font-mono">{url}</p>
-                <button 
-                    onClick={onClose}
-                    className="mt-6 w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                    Zamknij i oceń e-mail
-                </button>
-            </div>
-        </div>
-    );
 }
 
 // --- Komponent layoutu Gmaila ---
@@ -653,7 +640,7 @@ function EmailList() {
 
 // --- Komponent widoku pojedynczego maila ---
 function EmailView() {
-  const { selectedEmail, handleAnswer, selectEmail, user, setHoveredLink, setLinkModal } = useContext(AppContext);
+  const { selectedEmail, handleAnswer, selectEmail, user, setHoveredLink } = useContext(AppContext);
   const bodyRef = useRef(null);
   const [hoveredSender, setHoveredSender] = useState(false);
 
@@ -676,12 +663,9 @@ function EmailView() {
     };
     
     const handleLinkClick = (e) => {
-        const target = e.target.closest('a[data-real-href]');
-        if (target) {
+        if (e.target.closest('a[data-real-href]')) {
             e.preventDefault();
-            if (!selectedEmail.answered) {
-                setLinkModal(target.getAttribute('data-real-href'));
-            }
+            // This click no longer fails the test, it just prevents navigation
         }
     };
 
@@ -695,7 +679,7 @@ function EmailView() {
       bodyEl.removeEventListener('click', handleLinkClick);
       setHoveredLink(null);
     };
-  }, [selectedEmail, handleAnswer, setHoveredLink, setLinkModal]);
+  }, [selectedEmail, setHoveredLink]);
 
   if (!selectedEmail) return null;
 
