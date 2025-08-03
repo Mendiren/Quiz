@@ -418,22 +418,14 @@ export default function App() {
   const [selectedEmailId, setSelectedEmailId] = useState(null);
   const [score, setScore] = useState({ correct: 0, incorrect: 0, answered: 0 });
   const [hoveredLink, setHoveredLink] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
     script.async = true;
     document.body.appendChild(script);
-
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-
     return () => {
       document.body.removeChild(script);
-      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
@@ -482,10 +474,7 @@ export default function App() {
       <div className="relative h-screen w-screen">
         <GmailLayout />
         {hoveredLink && (
-          <div 
-            style={{ top: mousePosition.y + 20, left: mousePosition.x + 20 }}
-            className="absolute bg-gray-800 text-white text-sm px-3 py-1 rounded-md shadow-lg z-50 pointer-events-none"
-          >
+          <div className="absolute bottom-0 left-0 bg-gray-800 text-white text-sm px-4 py-2 shadow-lg z-50">
             {hoveredLink}
           </div>
         )}
