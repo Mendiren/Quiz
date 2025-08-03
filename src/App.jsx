@@ -474,7 +474,7 @@ export default function App() {
       <div className="relative h-screen w-screen">
         <GmailLayout />
         {hoveredLink && (
-          <div className="absolute bottom-0 left-0 bg-gray-800 text-white text-sm px-4 py-2 shadow-lg z-50">
+          <div className="absolute bottom-0 right-0 bg-gray-800 text-white text-sm px-4 py-2 shadow-lg z-50">
             {hoveredLink}
           </div>
         )}
