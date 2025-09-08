@@ -9,11 +9,11 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxZ2H-MjDPLT
 // --- Funkcje do obsługi statystyk ---
 const saveResultToGoogleSheet = async (result) => {
   // Sprawdzenie, czy URL został podmieniony na prawdziwy
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyxZ2H-MjDPLT8b7GKGifZOPyX799r-HVnernTawuD0VvTaGZEyaM0A7O_1ces0x-Mo/exec') {
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'TWOJ_ADRES_URL_ZE_SKRYPTU_GOOGLE') {
     console.warn("Adres URL skryptu Google nie został skonfigurowany. Wynik nie zostanie zapisany.");
     return;
   }
-
+    console.log('Próba wysłania danych do Arkusza:', result);
   try {
     // Wysłanie danych do skryptu Google
     await fetch(GOOGLE_SCRIPT_URL, {
