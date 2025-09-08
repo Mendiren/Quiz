@@ -1,6 +1,34 @@
 import React, { useState, useMemo, createContext, useContext, useEffect, useRef } from 'react';
 import { Mail, ShieldCheck, ShieldAlert, Inbox, Send, FileText, Trash2, Pencil, Star, Search, Menu, UserCircle, CheckCircle, XCircle, Award, Download } from 'lucide-react';
 
+// --- WAŻNE ---
+// Wklej tutaj adres URL swojej aplikacji internetowej z Google Apps Script.
+// Instrukcję, jak go uzyskać, znajdziesz w przewodniku.
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxZ2H-MjDPLT8b7GKGifZOPyX799r-HVnernTawuD0VvTaGZEyaM0A7O_1ces0x-Mo/exec';
+
+// --- Funkcje do obsługi statystyk ---
+const saveResultToGoogleSheet = async (result) => {
+  // Sprawdzenie, czy URL został podmieniony
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'TWOJ_ADRES_URL_ZE_SKRYPTU_GOOGLE') {
+    console.warn("Adres URL skryptu Google nie został skonfigurowany. Wynik nie zostanie zapisany.");
+    return;
+  }
+
+  try {
+    // Wysłanie danych do skryptu Google
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Ważne: Google Apps Script wymaga tego trybu
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(result),
+    });
+  } catch (error) {
+    console.error('Błąd podczas zapisywania wyniku do Arkusza Google:', error);
+  }
+};
+
 // --- Baza danych maili ---
 const initialEmailsData = [
   // --- Phishing Emails (28) ---
@@ -631,6 +659,28 @@ function EmailList() {
 function EmailView() {
   const { selectedEmail, handleAnswer, selectEmail, user, setHoveredLink } = useContext(AppContext);
   const bodyRef = useRef(null);
+
+// --- Komponent ekranu wyników ---
+function ResultsScreen({ score, total, onReset, user }) {
+  const accuracy = total > 0 ? Math.round((score.correct / total) * 100) : 0;
+  const certificateRef = useRef(null);
+
+  useEffect(() => {
+    // Przygotuj obiekt z danymi do wysłania
+    const resultData = {
+      name: user.name,
+      email: user.email,
+      score: `${score.correct}/${total}`,
+      accuracy: `${accuracy}%`,
+      timestamp: new Date().toLocaleString('pl-PL'),
+    };
+    // Wywołaj funkcję zapisującą
+    saveResultToGoogleSheet(resultData);
+  }, [score, total, user, accuracy]); // Ten hook uruchomi się tylko raz po zakończeniu quizu
+
+  // ... reszta kodu komponentu ResultsScreen ...
+};
+  
   const [hoveredSender, setHoveredSender] = useState(false);
 
   useEffect(() => {
