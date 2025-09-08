@@ -661,38 +661,6 @@ function EmailList() {
 function EmailView() {
   const { selectedEmail, handleAnswer, selectEmail, user, setHoveredLink } = useContext(AppContext);
   const bodyRef = useRef(null);
-
-// --- Komponent ekranu wyników ---
-function ResultsScreen({ score, total, onReset, user }) {
-  const accuracy = total > 0 ? Math.round((score.correct / total) * 100) : 0;
-  const certificateRef = useRef(null);
-
-  useEffect(() => {
-    // Przygotuj obiekt z danymi do wysłania
-    const resultData = {
-      name: user.name,
-      email: user.email,
-      score: `${score.correct}/${total}`,
-      accuracy: `${accuracy}%`,
-      timestamp: new Date().toLocaleString('pl-PL'),
-    };
-    // Wywołaj funkcję zapisującą
-    saveResultToGoogleSheet(resultData);
-  }, [score, total, user, accuracy]); // Ten hook uruchomi się tylko raz po zakończeniu quizu
-  
-  const [hoveredSender, setHoveredSender] = useState(false);
-
-  useEffect(() => {
-    const bodyEl = bodyRef.current;
-    if (!bodyEl) return;
-    
-    const handleMouseOver = (e) => {
-        const target = e.target.closest('a[data-real-href]');
-        if (target) {
-            setHoveredLink(target.getAttribute('data-real-href'));
-        }
-    };
-
     const handleMouseOut = (e) => {
         const target = e.target.closest('a[data-real-href]');
         if (target) {
