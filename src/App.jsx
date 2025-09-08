@@ -13,7 +13,9 @@ const saveResultToGoogleSheet = async (result) => {
     console.warn("Adres URL skryptu Google nie został skonfigurowany. Wynik nie zostanie zapisany.");
     return;
   }
-    console.log('Próba wysłania danych do Arkusza:', result);
+
+  console.log('Próba wysłania danych do Arkusza:', result);
+
   try {
     // Wysłanie danych do skryptu Google
     await fetch(GOOGLE_SCRIPT_URL, {
@@ -791,6 +793,20 @@ function Certificate({ user, innerRef }) {
 function ResultsScreen({ score, total, onReset, user }) {
   const accuracy = total > 0 ? Math.round((score.correct / total) * 100) : 0;
   const certificateRef = useRef(null);
+
+  useEffect(() => {
+    // Przygotuj obiekt z danymi do wysłania
+    const resultData = {
+      name: user.name,
+      email: user.email,
+      score: `${score.correct}/${total}`,
+      accuracy: `${accuracy}%`,
+      timestamp: new Date().toLocaleString('pl-PL'),
+    };
+    // Wywołaj funkcję zapisującą
+    saveResultToGoogleSheet(resultData);
+  }, [score, total, user, accuracy]); // Ten hook uruchomi się tylko raz po zakończeniu quizu
+
   let message = '';
   if (accuracy < 70) {
       message = 'Uważaj! Sporo prób phishingu umknęło Twojej uwadze. Poćwicz jeszcze trochę.';
