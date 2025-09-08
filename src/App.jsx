@@ -3,24 +3,19 @@ import { Mail, ShieldCheck, ShieldAlert, Inbox, Send, FileText, Trash2, Pencil, 
 
 // --- WAŻNE ---
 // Wklej tutaj adres URL swojej aplikacji internetowej z Google Apps Script.
-// Instrukcję, jak go uzyskać, znajdziesz w przewodniku.
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxZ2H-MjDPLT8b7GKGifZOPyX799r-HVnernTawuD0VvTaGZEyaM0A7O_1ces0x-Mo/exec';
 
-// --- Funkcje do obsługi statystyk ---
+// --- Funkcja do obsługi statystyk ---
 const saveResultToGoogleSheet = async (result) => {
-  // Sprawdzenie, czy URL został podmieniony na prawdziwy
   if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'TWOJ_ADRES_URL_ZE_SKRYPTU_GOOGLE') {
     console.warn("Adres URL skryptu Google nie został skonfigurowany. Wynik nie zostanie zapisany.");
     return;
   }
-
   console.log('Próba wysłania danych do Arkusza:', result);
-
   try {
-    // Wysłanie danych do skryptu Google
     await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Ważne: Google Apps Script wymaga tego trybu
+      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -438,7 +433,9 @@ const initialEmailsData = [
   },
 ];
 
-// --- Kontekst aplikacji ---
+// --- Pozostała część kodu pozostaje bez zmian...
+// ... (cała logika komponentów App, LoginScreen, AdminResultsScreen, itd.)
+// --- Główny komponent aplikacji ---
 const AppContext = createContext(null);
 
 // --- Główny komponent aplikacji ---
@@ -526,14 +523,15 @@ function LoginScreen({ onStart }) {
     setError('');
     onStart(name, email);
   };
-
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md relative">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800">Quiz Phishingowy</h1>
           <p className="mt-2 text-gray-600">Sprawdź, czy potrafisz odróżnić phishing od prawdziwej wiadomości!</p>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="name" className="text-sm font-medium text-gray-700">Twoje imię</label>
@@ -546,11 +544,12 @@ function LoginScreen({ onStart }) {
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div><button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">Rozpocznij Quiz</button></div>
         </form>
-        <p className="text-xs text-center text-gray-500">Podane dane są używane tylko na potrzeby tego quizu i nie są nigdzie zapisywane.</p>
+        <p className="text-xs text-center text-gray-500">Wyniki są zapisywane anonimowo do celów statystycznych.</p>
       </div>
     </div>
   );
 }
+
 
 // --- Komponent Tooltipu Nadawcy ---
 function SenderTooltip({ email, user }) {
@@ -661,6 +660,19 @@ function EmailList() {
 function EmailView() {
   const { selectedEmail, handleAnswer, selectEmail, user, setHoveredLink } = useContext(AppContext);
   const bodyRef = useRef(null);
+  const [hoveredSender, setHoveredSender] = useState(false);
+
+  useEffect(() => {
+    const bodyEl = bodyRef.current;
+    if (!bodyEl) return;
+    
+    const handleMouseOver = (e) => {
+        const target = e.target.closest('a[data-real-href]');
+        if (target) {
+            setHoveredLink(target.getAttribute('data-real-href'));
+        }
+    };
+
     const handleMouseOut = (e) => {
         const target = e.target.closest('a[data-real-href]');
         if (target) {
@@ -763,7 +775,6 @@ function ResultsScreen({ score, total, onReset, user }) {
   const certificateRef = useRef(null);
 
   useEffect(() => {
-    // Przygotuj obiekt z danymi do wysłania
     const resultData = {
       name: user.name,
       email: user.email,
@@ -771,9 +782,9 @@ function ResultsScreen({ score, total, onReset, user }) {
       accuracy: `${accuracy}%`,
       timestamp: new Date().toLocaleString('pl-PL'),
     };
-    // Wywołaj funkcję zapisującą
     saveResultToGoogleSheet(resultData);
-  }, [score, total, user, accuracy]); // Ten hook uruchomi się tylko raz po zakończeniu quizu
+  }, [score, total, user, accuracy]);
+
 
   let message = '';
   if (accuracy < 70) {
@@ -822,3 +833,4 @@ function ResultsScreen({ score, total, onReset, user }) {
     </div>
   );
 }
+
